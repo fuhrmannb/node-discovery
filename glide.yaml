@@ -1,0 +1,6 @@
+package: github.com/fuhrmannb/node-discovery
+import:
+- package: github.com/vmihailenco/msgpack
+  version: ~2.7
+- package: github.com/Sirupsen/logrus
+  version: ~0.10

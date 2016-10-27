@@ -1,0 +1,10 @@
+version: '2'
+services:
+  simple-discovery:
+    image: golang:1.7.3-alpine
+    entrypoint: go
+    command:
+    - run
+    - /go/src/github.com/fuhrmannb/node-discovery/examples/simple_discovery.go
+    volumes:
+    - .:/go/src/github.com/fuhrmannb/node-discovery

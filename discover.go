@@ -34,9 +34,14 @@ func SetLogger(logger logrus.FieldLogger) {
 	log = logger
 }
 
-var MAX_UDP_PACKET = 65536
-var PROTOCOL_VERSION = "beta1"
-var RECV_TIMEOUT = 5 * time.Second
+const (
+	MAX_UDP_PACKET = 65536
+	PROTOCOL_VERSION = "beta1"
+	RECV_TIMEOUT = 5 * time.Second
+
+	DEFAULT_HEARTBEAT = time.Second
+	DEFAULT_LEAVE_TIMEOUT = 10 * time.Second
+)
 
 type registerData struct {
 	sync.RWMutex
@@ -52,9 +57,9 @@ type servicesData struct {
 }
 
 type NodeDiscover struct {
-	udpConn *net.UDPConn
-	udpAddr *net.UDPAddr
-	udpWG sync.WaitGroup
+	conn net.PacketConn
+	addr net.Addr
+	connWG sync.WaitGroup
 
 	sendTicker *time.Ticker
 	leaveTimeout time.Duration
@@ -84,28 +89,12 @@ type NodeEvent struct {
 }
 
 type options struct {
-	multicastAddress net.IP
-	port int
-	iface *net.Interface
-	networkType string
+	conn net.PacketConn
+	addr net.Addr
 	heartbeat time.Duration
 	leaveTimeout time.Duration
 }
 type NodeDiscoverOpt func(*options) (error)
-
-func IfaceOpt(iface *net.Interface) NodeDiscoverOpt {
-	return func(o *options) error {
-		o.iface = iface
-		return nil
-	}
-}
-
-func NetworkTypeOpt(netType string) NodeDiscoverOpt {
-	return func(o *options) error {
-		o.networkType = netType
-		return nil
-	}
-}
 
 func HeartbeatOpt(heartbeat time.Duration) NodeDiscoverOpt {
 	return func(o *options) error {
@@ -114,33 +103,48 @@ func HeartbeatOpt(heartbeat time.Duration) NodeDiscoverOpt {
 	}
 }
 
-func MulticastAddressOpt(multicastAddress string) NodeDiscoverOpt {
+func LeaveTimeoutOpt(timeout time.Duration) NodeDiscoverOpt {
+	return func(o *options) error {
+		o.leaveTimeout = timeout
+		return nil
+	}
+}
+
+func CustomConnectionOpt(connection net.PacketConn, addr net.Addr) NodeDiscoverOpt {
+	return func(o *options) error {
+		o.conn = connection
+		o.addr = addr
+		return nil
+	}
+}
+
+func MulticastOpt(multicastAddress string, port int, iface *net.Interface) NodeDiscoverOpt {
 	return func(o *options) error {
 		ip := net.ParseIP(multicastAddress)
 		if ip == nil {
 			return errors.New("Given multicast address option is not a valid IP")
 		}
-		o.multicastAddress = ip
-		return nil
-	}
-}
-
-func PortOpt(port int) NodeDiscoverOpt {
-	return func(o *options) error {
-		o.port = port
+		addr := &net.UDPAddr{
+			IP: ip,
+			Port: port,
+		}
+		o.addr = addr
+		udpConn, err := net.ListenMulticastUDP("udp", iface, addr)
+		if err != nil {
+			return err
+		}
+		o.conn = udpConn
 		return nil
 	}
 }
 
 func Listen(customOpts ...NodeDiscoverOpt) (*NodeDiscover, error) {
-	// Default options
 	opts := &options {
-		multicastAddress: net.ParseIP("224.0.42.1"),
-		port: 5342,
-		iface: &net.Interface{},
-		networkType: "udp",
-		heartbeat: time.Second,
-		leaveTimeout: 10 * time.Second,
+		conn: nil,
+		addr: nil,
+		// Default options
+		heartbeat: DEFAULT_HEARTBEAT,
+		leaveTimeout: DEFAULT_LEAVE_TIMEOUT,
 	}
 	// Manage custom options
 	for _, o := range customOpts {
@@ -149,20 +153,14 @@ func Listen(customOpts ...NodeDiscoverOpt) (*NodeDiscover, error) {
 			return nil, err
 		}
 	}
-
-	// Connect to network
-	udpAddr := &net.UDPAddr{
-		IP: opts.multicastAddress,
-		Port: opts.port,
-	}
-	udpConn, err := net.ListenMulticastUDP(opts.networkType, opts.iface, udpAddr)
-	if err != nil {
-		return nil, err
+	// If no connection provided, set to default multicast network
+	if opts.conn == nil {
+		MulticastOpt("224.0.42.1", 5432, nil)(opts)
 	}
 
 	nd := &NodeDiscover{
-		udpConn: udpConn,
-		udpAddr: udpAddr,
+		conn: opts.conn,
+		addr: opts.addr,
 		sendTicker: time.NewTicker(opts.heartbeat),
 		leaveTimeout: opts.leaveTimeout,
 		registers: registerData{
@@ -183,15 +181,15 @@ func Listen(customOpts ...NodeDiscoverOpt) (*NodeDiscover, error) {
 	go nd.sendHeartbeat()
 	go nd.manageEvents()
 
-	log.Infof("node-discovery: Listen connections from %v", nd.udpAddr.String())
+	log.Infof("node-discovery: Listen connections from %v", nd.addr.String())
 
 	return nd, nil
 }
 
 func (nd *NodeDiscover) recvHeartbeat() {
 	// Manage wait group → use for closing UDP connection
-	nd.udpWG.Add(1)
-	defer nd.udpWG.Done()
+	nd.connWG.Add(1)
+	defer nd.connWG.Done()
 
 	// Receive loop
 	buf := make([]byte, MAX_UDP_PACKET)
@@ -201,8 +199,8 @@ func (nd *NodeDiscover) recvHeartbeat() {
 			return
 		default:
 			// Receive packet
-			nd.udpConn.SetReadDeadline(time.Now().Add(RECV_TIMEOUT))
-			n, _, err := nd.udpConn.ReadFromUDP(buf)
+			nd.conn.SetReadDeadline(time.Now().Add(RECV_TIMEOUT))
+			n, _, err := nd.conn.ReadFrom(buf)
 			if err != nil {
 				// Check timeout
 				if err.(net.Error).Timeout() {
@@ -301,8 +299,8 @@ func (nd *NodeDiscover) generateHeartbeat() heartBeatMsg {
 
 func (nd *NodeDiscover) sendHeartbeat() {
 	// Manage wait group → use for closing UDP connection
-	nd.udpWG.Add(1)
-	defer nd.udpWG.Done()
+	nd.connWG.Add(1)
+	defer nd.connWG.Done()
 
 	// Send loop
 	for {
@@ -321,7 +319,7 @@ func (nd *NodeDiscover) sendHeartbeat() {
 			}
 
 			// Sent id
-			_, err2 := nd.udpConn.WriteToUDP(data, nd.udpAddr)
+			_, err2 := nd.conn.WriteTo(data, nd.addr)
 			if err2 != nil {
 				log.Warnf("node-discovery: Fail to sent packet: %v", err)
 				continue
@@ -364,8 +362,8 @@ func (nd *NodeDiscover) Close() {
 	close(nd.closed)
 
 	// Wait for send/recv routines to stop before closing connection
-	nd.udpWG.Wait()
+	nd.connWG.Wait()
 
-	nd.udpConn.Close()
-	log.Infof("node-discovery: Connection close to %v", nd.udpAddr.String())
+	nd.conn.Close()
+	log.Infof("node-discovery: Connection close to %v", nd.addr.String())
 }

@@ -23,8 +23,8 @@ import (
 	"sync"
 	"time"
 	"net/url"
-	"github.com/vmihailenco/msgpack"
-	"github.com/pkg/errors"
+	"gopkg.in/vmihailenco/msgpack.v2"
+	"errors"
 	"github.com/Sirupsen/logrus"
 )
 

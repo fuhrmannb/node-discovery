@@ -1,5 +1,5 @@
-hash: 786627a66790140fca169773b694b941e7f1f0224200c65b4dc41d4fb8e66759
-updated: 2016-11-03T20:44:37.486106416+01:00
+hash: 0e16389baa13acc1a4ea991e7899593f5b96a216f26c053ea2c8e33d4ef77ab0
+updated: 2016-11-06T19:10:43.564700164+01:00
 imports:
 - name: github.com/golang/protobuf
   version: 98fa357170587e470c5f27d3c3ea0947b71eb455
@@ -13,6 +13,7 @@ imports:
   version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
   subpackages:
   - assert
+  - require
 - name: github.com/vmihailenco/msgpack
   version: 38f3708c44f1402aeb2f137dd9a9dfb12bae2204
 - name: golang.org/x/net

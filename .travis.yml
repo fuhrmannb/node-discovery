@@ -1,0 +1,13 @@
+---
+language: go
+
+go:
+- 1.7
+
+install:
+  - mkdir $GOPATH/bin
+  - curl https://glide.sh/get | sh
+  - glide install
+
+script:
+  - go test github.com/fuhrmannb/node-discovery

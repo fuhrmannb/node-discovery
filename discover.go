@@ -177,6 +177,7 @@ func Listen(customOpts ...NodeDiscoverOpt) (*NodeDiscover, error) {
 	}
 
 	// Start routines
+	nd.connWG.Add(2)
 	go nd.recvHeartbeat()
 	go nd.sendHeartbeat()
 	go nd.manageEvents()
@@ -188,7 +189,6 @@ func Listen(customOpts ...NodeDiscoverOpt) (*NodeDiscover, error) {
 
 func (nd *NodeDiscover) recvHeartbeat() {
 	// Manage wait group → use for closing UDP connection
-	nd.connWG.Add(1)
 	defer nd.connWG.Done()
 
 	// Receive loop
@@ -196,6 +196,7 @@ func (nd *NodeDiscover) recvHeartbeat() {
 	for {
 		select {
 		case <- nd.closed:
+			log.Debug("node-discovery: recvHeartbeat routine finished")
 			return
 		default:
 			// Receive packet
@@ -251,6 +252,10 @@ func (nd *NodeDiscover) managePacket(msg heartBeatMsg) {
 					Type: ServiceLeaveEvent,
 					Service: svcURL,
 				}
+				// Remove from list
+				nd.services.Lock()
+				delete(nd.services.s, svcRaw)
+				nd.services.Unlock()
 			})
 
 			// Emit new service event
@@ -268,6 +273,7 @@ func (nd *NodeDiscover) manageEvents() {
 	for {
 		select {
 		case <- nd.closed:
+			log.Debug("node-discovery: manageEvents routine finished")
 			return
 		case event := <- nd.events:
 			// Send event to all the listeners
@@ -285,7 +291,7 @@ func (nd *NodeDiscover) generateHeartbeat() heartBeatMsg {
 	defer nd.registers.RUnlock()
 
 	// Construct service list
-	var services []string
+	services := []string{}
 	for s := range nd.registers.r {
 		services = append(services, s)
 	}
@@ -299,13 +305,13 @@ func (nd *NodeDiscover) generateHeartbeat() heartBeatMsg {
 
 func (nd *NodeDiscover) sendHeartbeat() {
 	// Manage wait group → use for closing UDP connection
-	nd.connWG.Add(1)
 	defer nd.connWG.Done()
 
 	// Send loop
 	for {
 		select {
 		case <- nd.closed:
+			log.Debug("node-discovery: sendHeartbeat routine finished")
 			return
 		case <- nd.sendTicker.C:
 			// Create heartbeat message
@@ -336,7 +342,7 @@ func (nd *NodeDiscover) Subscribe(eventCh chan NodeEvent) {
 	log.Info("node-discovery: Subscriber added")
 }
 
-func (nd *NodeDiscover) Unsubscibe(eventCh chan NodeEvent) {
+func (nd *NodeDiscover) Unsubscribe(eventCh chan NodeEvent) {
 	nd.subscribers.Lock()
 	delete(nd.subscribers.s, eventCh)
 	nd.subscribers.Unlock()
@@ -359,11 +365,14 @@ func (nd *NodeDiscover) Deregister(service *url.URL) {
 
 func (nd *NodeDiscover) Close() {
 	// Trigger close signal to routines
+	log.Debug("node-discovery: Emit closing signal to routines...")
 	close(nd.closed)
 
 	// Wait for send/recv routines to stop before closing connection
+	log.Debug("node-discovery: Waiting for routines to finish...")
 	nd.connWG.Wait()
 
+	log.Debug("node-discovery: Closing connection....")
 	nd.conn.Close()
 	log.Infof("node-discovery: Connection close to %v", nd.addr.String())
 }

@@ -8,6 +8,8 @@ install:
   - mkdir $GOPATH/bin
   - curl https://glide.sh/get | sh
   - glide install
+  - go get github.com/golang/lint/golint
 
 script:
   - go test github.com/fuhrmannb/node-discovery
+  - golint -set_exit_status github.com/fuhrmannb/node-discovery

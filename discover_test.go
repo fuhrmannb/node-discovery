@@ -237,19 +237,19 @@ func TestSendHeartbeat(t *testing.T) {
 func TestNodeDiscover_Register(t *testing.T) {
 	nd := FakeListen(t)
 	defer nd.Close()
-	svcUrl, err := url.Parse("http://svc1:1231")
+	svcURL, err := url.Parse("http://svc1:1231")
 	require.NoError(t, err)
 
 	// Test registration
-	nd.Register(svcUrl)
+	nd.Register(svcURL)
 	nd.registers.RLock()
-	assert.True(t, nd.registers.r[svcUrl.String()])
+	assert.True(t, nd.registers.r[svcURL.String()])
 	nd.registers.RUnlock()
 
 	// Test Deregistration
-	nd.Deregister(svcUrl)
+	nd.Deregister(svcURL)
 	nd.registers.RLock()
-	assert.False(t, nd.registers.r[svcUrl.String()])
+	assert.False(t, nd.registers.r[svcURL.String()])
 	nd.registers.RUnlock()
 }
 
@@ -298,13 +298,13 @@ func TestEvents(t *testing.T) {
 		require.NoError(t, err)
 		(nd.conn.(*FakeConn)).InputChan <- hbData
 
-		svcUrl, errUrl := url.Parse(svc)
-		require.NoError(t, errUrl)
+		svcURL, errURL := url.Parse(svc)
+		require.NoError(t, errURL)
 		// Receive join service event
 		select {
 		case msg := <-subCh:
 			assert.Equal(t, ServiceJoinEvent, msg.Type)
-			assert.Equal(t, svcUrl, msg.Service)
+			assert.Equal(t, svcURL, msg.Service)
 		case <-time.After(4 * time.Second):
 			require.Fail(t, "Did not receive join event message")
 		}
@@ -316,7 +316,7 @@ func TestEvents(t *testing.T) {
 		select {
 		case msg := <-subCh:
 			assert.Equal(t, ServiceLeaveEvent, msg.Type)
-			assert.Equal(t, svcUrl, msg.Service)
+			assert.Equal(t, svcURL, msg.Service)
 		case <-time.After(4 * time.Second):
 			require.Fail(t, "Did not receive leave event message")
 		}

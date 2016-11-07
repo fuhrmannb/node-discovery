@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/fuhrmannb/node-discovery.svg?branch=master)](https://travis-ci.org/fuhrmannb/node-discovery)
 [![Stories in Ready](https://badge.waffle.io/fuhrmannb/node-discovery.svg?label=ready&title=Ready)](http://waffle.io/fuhrmannb/node-discovery)
+[![GoDoc](https://godoc.org/github.com/fuhrmannb/node-discovery?status.svg)](https://godoc.org/github.com/fuhrmannb/node-discovery)
 
 Simple decentralized discovery library written in Go
 

@@ -1,4 +1,4 @@
-package node_discovery
+package discovery
 
 import (
 	"testing"
@@ -171,7 +171,7 @@ func TestListen(t *testing.T) {
 		nd, err := Listen()
 		defer nd.Close()
 		require.NoError(t, err)
-		assert.Equal(t, DEFAULT_LEAVE_TIMEOUT, nd.leaveTimeout)
+		assert.Equal(t, DefaultLeaveTimeout, nd.leaveTimeout)
 		assert.NotNil(t, nd.conn)
 		assert.NotNil(t, nd.addr)
 		assert.NotNil(t, nd.sendTicker)
@@ -226,7 +226,7 @@ func TestSendHeartbeat(t *testing.T) {
 			require.Fail(t, "Did not receive heartbeat message")
 		}
 
-		assert.Equal(t, PROTOCOL_VERSION, hb.Version)
+		assert.Equal(t, ProtocolVersion, hb.Version)
 		sort.Strings(svc)
 		sort.Strings(hb.Services)
 		assert.Equal(t, svc, hb.Services)
@@ -291,7 +291,7 @@ func TestEvents(t *testing.T) {
 		// Send fake service
 		svc := "http://svc:1231"
 		hb := heartBeatMsg{
-			Version: PROTOCOL_VERSION,
+			Version: ProtocolVersion,
 			Services: []string{svc},
 		}
 		hbData, err := msgpack.Marshal(&hb)

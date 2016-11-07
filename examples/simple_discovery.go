@@ -13,13 +13,13 @@ func main() {
 	log := logrus.New()
 	// You can change log level to debug with:
 	// log.Level = logrus.DebugLevel
-	node_discovery.SetLogger(log)
+	discovery.SetLogger(log)
 
 	log.Print("Initializing discovery...")
 	// Create our node discovery to receive/send requests
-	nodeDiscovery, err := node_discovery.Listen()
+	nodeDiscovery, err := discovery.Listen()
 	if err != nil {
-		log.Fatal("Node Discovery cannot be created: %v", err)
+		log.Fatalf("Node Discovery cannot be created: %v", err)
 	}
 
 	// Register a service (Note: a single node can register multiple services)
@@ -39,16 +39,16 @@ func main() {
 
 	// Subscribe to some events and print them
 	// First, create a channel to collect events
-	subCh := make(chan node_discovery.NodeEvent)
+	subCh := make(chan discovery.NodeEvent)
 
 	// Create a routine to print received events, reading previous created channel
 	go func() {
 		for e := range subCh {
 			// Two kind of events: Join and Leave
 			switch e.Type {
-			case node_discovery.ServiceJoinEvent:
+			case discovery.ServiceJoinEvent:
 				log.Printf("A new service has joined the cluster: %v", e.Service.String())
-			case node_discovery.ServiceLeaveEvent:
+			case discovery.ServiceLeaveEvent:
 				log.Printf("A service has left the cluster: %v", e.Service.String())
 			}
 		}

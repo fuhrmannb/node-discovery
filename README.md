@@ -1,8 +1,8 @@
 # Node Discovery
 
-[![Build Status](https://travis-ci.org/fuhrmannb/node-discovery.svg?branch=master)](https://travis-ci.org/fuhrmannb/node-discovery)
-[![Stories in Ready](https://badge.waffle.io/fuhrmannb/node-discovery.svg?label=ready&title=Ready)](http://waffle.io/fuhrmannb/node-discovery)
-[![GoDoc](https://godoc.org/github.com/fuhrmannb/node-discovery?status.svg)](https://godoc.org/github.com/fuhrmannb/node-discovery)
+[![Build Status](https://travis-ci.org/StarburstComputing/node-discovery.svg?branch=master)](https://travis-ci.org/StarburstComputing/node-discovery)
+[![Stories in Ready](https://badge.waffle.io/StarburstComputing/node-discovery.svg?label=ready&title=Ready)](http://waffle.io/StarburstComputing/node-discovery)
+[![GoDoc](https://godoc.org/github.com/StarburstComputing/node-discovery?status.svg)](https://godoc.org/github.com/StarburstComputing/node-discovery)
 
 Simple decentralized discovery library written in Go
 
@@ -19,7 +19,7 @@ Each node can:
 * Subscribe to service events (when a service join or leave the cluster).
 
 The exchanges is based on the _Node Discovery Protocol_.
-More information on this norm can be found [here](https://github.com/fuhrmannb/node-discovery/wiki/Node-Discovery-Protocol).
+More information on this norm can be found [here](https://github.com/StarburstComputing/node-discovery/wiki/Node-Discovery-Protocol).
 
 This software has been tested with the following operating systems:
 * `linux/amd64`
@@ -32,13 +32,13 @@ Golang language.
 In a simple way, just use `go get`:
 
 ```
-$ go get github.com/fuhrmannb/node-discovery
+$ go get github.com/StarburstComputing/node-discovery
 ```
 
 In your code, import the package:
 
 ```go
-import "github.com/fuhrmannb/node-discovery"
+import "github.com/StarburstComputing/node-discovery"
 ```
 
 ## Quickstart
@@ -135,6 +135,6 @@ To propose a change, please open a Pull Request, follow the Go standard and writ
 If you want to develop into the software, we recommend to use [Glide](http://glide.sh) instead of the `go get` solution:
 
 ```
-$ git clone https://github.com/fuhrmannb/node-discovery
+$ git clone https://github.com/StarburstComputing/node-discovery
 $ glide install
 ```

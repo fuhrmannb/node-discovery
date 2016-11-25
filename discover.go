@@ -25,10 +25,10 @@ This package is based on nodes sharing periodically information between them. Ea
 that will be exchanged to others, and subscribe to service events.
 
 Exchanges are based on the Node Discovery Protocol. More detail here:
-https://github.com/fuhrmannb/node-discovery/wiki/Node-Discovery-Protocol
+https://github.com/StarburstComputing/node-discovery/wiki/Node-Discovery-Protocol
 
 More informations on this package on the Github repository:
-https://github.com/fuhrmannb/node-discovery
+https://github.com/StarburstComputing/node-discovery
  */
 package discovery
 

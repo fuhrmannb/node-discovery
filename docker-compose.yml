@@ -5,6 +5,6 @@ services:
     entrypoint: go
     command:
     - run
-    - /go/src/github.com/fuhrmannb/node-discovery/examples/simple_discovery.go
+    - /go/src/github.com/StarburstComputing/node-discovery/examples/simple_discovery.go
     volumes:
-    - .:/go/src/github.com/fuhrmannb/node-discovery
+    - .:/go/src/github.com/StarburstComputing/node-discovery

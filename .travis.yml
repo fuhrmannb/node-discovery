@@ -11,5 +11,5 @@ install:
   - go get github.com/golang/lint/golint
 
 script:
-  - go test github.com/fuhrmannb/node-discovery
-  - golint -set_exit_status github.com/fuhrmannb/node-discovery
+  - go test github.com/StarburstComputing/node-discovery
+  - golint -set_exit_status github.com/StarburstComputing/node-discovery

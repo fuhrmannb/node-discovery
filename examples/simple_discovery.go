@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/fuhrmannb/node-discovery"
+	"github.com/StarburstComputing/node-discovery"
 	"net/url"
 	"os"
 	"os/signal"

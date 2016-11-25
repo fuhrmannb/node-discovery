@@ -1,7 +1,6 @@
 # Node Discovery
 
 [![Build Status](https://travis-ci.org/StarburstComputing/node-discovery.svg?branch=master)](https://travis-ci.org/StarburstComputing/node-discovery)
-[![Stories in Ready](https://badge.waffle.io/StarburstComputing/node-discovery.svg?label=ready&title=Ready)](http://waffle.io/StarburstComputing/node-discovery)
 [![GoDoc](https://godoc.org/github.com/StarburstComputing/node-discovery?status.svg)](https://godoc.org/github.com/StarburstComputing/node-discovery)
 
 Simple decentralized discovery library written in Go

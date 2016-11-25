@@ -1,4 +1,4 @@
-package: github.com/fuhrmannb/node-discovery
+package: github.com/StarburstComputing/node-discovery
 import:
 - package: gopkg.in/vmihailenco/msgpack.v2
   version: ~2.7
